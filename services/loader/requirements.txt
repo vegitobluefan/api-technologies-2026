@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+zeep
+requests
+psycopg[binary]>=3.2
+apscheduler
+pydantic-settings

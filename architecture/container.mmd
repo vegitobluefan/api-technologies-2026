@@ -28,6 +28,7 @@ C4Container
     Rel(loader, db, "Пишет версии записей (SCD2)", "SQL")
     Rel(enrich, db, "Читает историю, формирует и пишет актуальный срез", "SQL")
     Rel(enrich, cache, "Прогревает кэш свежими данными", "Redis protocol")
+    Rel(enrich, abs, "Проверяет, клиент ли банка (legal-clients:lookup)", "REST/JSON")
     Rel(enrich, analytics, "Передаёт исторический и актуальный срез", "ETL")
 
     Rel(crm, gateway, "Запросы к платформе", "REST/JSON")
@@ -41,6 +42,6 @@ C4Container
     Rel(clientinfo, db, "Читает актуальный срез при промахе кэша", "SQL")
     Rel(groupcomp, db, "Читает актуальный срез", "SQL")
     Rel(scoring, db, "Читает актуальный срез", "SQL")
-    Rel(scoring, mlmodel, "Запрашивает скоринг", "REST/JSON")
+    Rel(scoring, mlmodel, "Запрашивает скоринг", "gRPC")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

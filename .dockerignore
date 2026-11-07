@@ -1,0 +1,10 @@
+.git
+.env
+.env.local
+.gen
+models
+architecture
+contracts
+docs
+**/__pycache__
+**/*.pyc

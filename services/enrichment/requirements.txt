@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+httpx
+psycopg[binary]>=3.2
+redis
+pydantic-settings

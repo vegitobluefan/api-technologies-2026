@@ -1,0 +1,19 @@
+syntax = "proto3";
+package scoring.v1;
+
+// Признаки передаются по именам. Набор имён определяет модель (meta["features"]),
+// его можно узнать через GetInfo, поэтому .proto не меняется при смене признаков.
+message PredictRequest {
+  string inn = 1;
+  map<string, double> numeric = 2;      // возраст в месяцах, размер группы, ...
+  map<string, string> categorical = 3;  // ОКВЭД, статус, ...
+}
+message PredictResponse { double score = 1; string model_version = 2; }
+
+message InfoRequest {}
+message ModelInfo { repeated string features = 1; string model_version = 2; }
+
+service CompanyScoring {
+  rpc Predict(PredictRequest) returns (PredictResponse);
+  rpc GetInfo(InfoRequest) returns (ModelInfo);
+}

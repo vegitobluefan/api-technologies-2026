@@ -1,3 +1,5 @@
+# ВНИМАНИЕ (ДЗ 4): вызов Scoring -> ML Model переведён на gRPC, см. proto/scoring.proto и docs/CHANGES-hw4.md.
+# Этот REST-контракт сохранён как история ДЗ 2 и в реализации не используется.
 openapi: 3.2.1
 info:
   title: ML Model

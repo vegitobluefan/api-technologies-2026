@@ -7,3 +7,9 @@ __pycache__/
 build/
 cmake-build-*/
 
+
+# ДЗ 4
+.env.local
+.gen/
+models/*
+!models/.gitkeep

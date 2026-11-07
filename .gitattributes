@@ -33,3 +33,10 @@
 *.avi filter=lfs diff=lfs merge=lfs -text
 *.mkv filter=lfs diff=lfs merge=lfs -text
 *.webm filter=lfs diff=lfs merge=lfs -text
+
+# ДЗ 4: файлы, которые исполняются в Linux-контейнерах, должны быть с LF
+*.sh text eol=lf
+Dockerfile text eol=lf
+Makefile text eol=lf
+*.sql text eol=lf
+*.proto text eol=lf

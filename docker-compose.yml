@@ -1,0 +1,122 @@
+x-app: &app
+  env_file: .env
+  restart: unless-stopped
+
+x-health: &health
+  interval: 10s
+  timeout: 3s
+  retries: 10
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # применяется только на ПУСТОМ томе; после правок схемы: make reset
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    mem_limit: 512m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+    ports: ["${REDIS_PORT:-6379}:6379"]
+    mem_limit: 128m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  loader:
+    <<: *app
+    build: { context: ., dockerfile: services/loader/Dockerfile }
+    ports: ["8003:8003"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8003/health')"]
+
+  enrichment:
+    <<: *app
+    build: { context: ., dockerfile: services/enrichment/Dockerfile }
+    ports: ["8001:8001"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8001/health')"]
+
+  ml-model:
+    <<: *app
+    build: { context: ., dockerfile: services/ml-model/Dockerfile }
+    volumes:
+      - ./models:/models        # сюда скачивается .dill (MODEL_URL); можно положить вручную
+    ports: ["50051:50051"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost',50051),2)"]
+      retries: 12
+      start_period: 90s         # время на скачивание и загрузку модели
+
+  scoring:
+    <<: *app
+    build: { context: ., dockerfile: services/scoring/Dockerfile }
+    ports: ["8002:8002"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      ml-model: { condition: service_started }   # без ML Model сервис обязан жить и отдавать 503
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8002/health')"]
+
+  client-info:
+    <<: *app
+    build: { context: ., dockerfile: services/client-info/Dockerfile }
+    ports: ["8004:8004"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8004/health')"]
+
+  group-companies:
+    <<: *app
+    build: { context: ., dockerfile: services/group-companies/Dockerfile }
+    ports: ["8005:8005"]
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8005/health')"]
+
+  gateway:
+    <<: *app
+    build: { context: ., dockerfile: services/gateway/Dockerfile }
+    ports: ["8000:8000"]
+    depends_on:
+      client-info: { condition: service_healthy }
+      group-companies: { condition: service_healthy }
+      scoring: { condition: service_healthy }
+    healthcheck:
+      <<: *health
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+
+volumes:
+  pgdata:
+  redisdata:
