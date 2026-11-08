@@ -14,6 +14,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      MOCK_SCENARIO: ${MOCK_SCENARIO:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
       # применяется только на ПУСТОМ томе; после правок схемы: make reset
