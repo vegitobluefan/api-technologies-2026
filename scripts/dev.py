@@ -15,7 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PORTS = {"gateway": 8000, "enrichment": 8001, "scoring": 8002, "loader": 8003,
          "client-info": 8004, "group-companies": 8005}
-TESTS = [("libs/common/tests", "libs/common"), ("services/scoring/tests", "services/scoring")]
+TESTS = [("libs/common/tests", "libs/common"), ("services/scoring/tests", "services/scoring"),
+         ("services/loader/tests", "services/loader")]
 
 
 def read_env(path: Path) -> dict:

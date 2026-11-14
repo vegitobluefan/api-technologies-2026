@@ -14,7 +14,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-      MOCK_SCENARIO: ${MOCK_SCENARIO:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
       # применяется только на ПУСТОМ томе; после правок схемы: make reset
@@ -43,6 +42,8 @@ services:
 
   loader:
     <<: *app
+    environment:
+      MOCK_SCENARIO: ${MOCK_SCENARIO:-}
     build: { context: ., dockerfile: services/loader/Dockerfile }
     ports: ["8003:8003"]
     depends_on:
@@ -53,6 +54,8 @@ services:
 
   enrichment:
     <<: *app
+    environment:
+      MOCK_SCENARIO: ${MOCK_SCENARIO:-}
     build: { context: ., dockerfile: services/enrichment/Dockerfile }
     ports: ["8001:8001"]
     depends_on:
